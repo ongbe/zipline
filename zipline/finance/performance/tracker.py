@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Quantopian, Inc.
+# Copyright 2013 Quantopian, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -282,8 +282,11 @@ class PerformanceTracker(object):
         self.event_count += 1
 
         if event.type == zp.DATASOURCE_TYPE.TRADE:
-            # update last sale
-            self.position_tracker.update_last_sale(event)
+            # update last sale, and pay out a cash adjustment
+            cash_adjustment = self.position_tracker.update_last_sale(event)
+            if cash_adjustment != 0:
+                for perf_period in self.perf_periods:
+                    perf_period.handle_cash_payment(cash_adjustment)
 
         elif event.type == zp.DATASOURCE_TYPE.TRANSACTION:
             # Trade simulation always follows a transaction with the
